@@ -1,33 +1,19 @@
 import os
 
-import discord
 import dotenv
+from google import genai
 
-dotenv.load_dotenv()
+import discord_bot
+import turtle_soup
 
-DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+if __name__ == "__main__":
+    dotenv.load_dotenv()
 
-if not DISCORD_BOT_TOKEN:
-    raise ValueError("DISCORD_BOT_TOKEN environment variable not set")
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-intents = discord.Intents.default()
-intents.message_content = True
+    genai_client = genai.Client(api_key=GOOGLE_API_KEY)
+    turtle_session_manager = turtle_soup.TurtleSessionManager(genai_client)
 
-client = discord.Client(intents=intents)
+    discod_bot = discord_bot.DiscordBot(turtle_session_manager)
 
-
-@client.event
-async def on_ready():
-    print(f"We have logged in as {client.user}")
-
-
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-
-    if message.content.startswith("$hello"):
-        await message.channel.send("Hello!")
-
-
-client.run(DISCORD_BOT_TOKEN)
+    discod_bot.run()
