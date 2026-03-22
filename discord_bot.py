@@ -21,13 +21,15 @@ class DiscordBot:
         async def turtle_start(interaction: discord.Interaction):
             if self._session_manager.check_session(interaction.channel_id):
                 await interaction.response.send_message("目前已經有正在進行的遊戲了！")
-                surface = self._session_manager.get_session_surface(interaction.channel_id)
+                surface = self._session_manager.get_session_surface(
+                    interaction.channel_id
+                )
                 if surface:
                     await interaction.followup.send(f"目前的湯面是：{surface}")
                 return
 
             await interaction.response.defer()
-            surface = await self._session_manager.start_session(interaction.channel_id)
+            surface = self._session_manager.start_session(interaction.channel_id)
             await interaction.followup.send(f"遊戲開始！\n湯面：{surface}")
 
         @self._tree.command(name="turtle_end", description="End the turtle soup game")

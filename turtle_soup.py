@@ -25,7 +25,7 @@ class TurtleSessionManager:
         self._genai_client = genai_client
         self._sessions: dict[int, TurtleGame] = {}
 
-    async def start_session(self, channel_id: int) -> str:
+    def start_session(self, channel_id: int) -> str:
         soup = random.choice(soup_data.soups)
 
         print(f"Selected soup surface: {soup.surface}")
@@ -76,7 +76,7 @@ class TurtleGame:
         # check if the question is actually a 湯底
 
         check_system_prompt = (
-            f"答案：{self._bottom}\n玩家猜測是否符合答案核心？只回答是或否。"
+            f"答案：{self._bottom}\n玩家猜測是否符合答案核心？只能回答是或否這兩個字其中一個，不能有其他字。"
         )
 
         check_response = await send_async_with_retry(
