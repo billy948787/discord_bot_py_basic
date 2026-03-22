@@ -37,6 +37,15 @@ class TurtleSessionManager:
 
         return soup.surface
 
+    def get_session_surface(self, channel_id: int) -> str | None:
+        game = self._sessions.get(channel_id)
+        if game is None:
+            return None
+        return game._surface
+
+    def check_session(self, channel_id: int) -> bool:
+        return channel_id in self._sessions
+
     def end_session(self, channel_id: int) -> None:
         if channel_id in self._sessions:
             del self._sessions[channel_id]
@@ -45,7 +54,14 @@ class TurtleSessionManager:
         game = self._sessions.get(channel_id)
         if game is None:
             return None
-        return await game.get_response_to_question(question)
+        response = await game.get_response_to_question(question)
+
+        # check if the response is one of the accepted responses, if not return a default message
+        if response is not None and "答案正確" in response:
+            self.end_session(channel_id)
+            return response
+        if response not in accepted_responses:
+            return "問題無效"
 
 
 class TurtleGame:
@@ -55,6 +71,22 @@ class TurtleGame:
         self._genai_client = genai_client
 
     async def get_response_to_question(self, question: str) -> str | None:
+        # check if the question is actually a 湯底
+
+        check_system_prompt = (
+            f"答案：{self._bottom}\n玩家猜測是否符合答案核心？只回答是或否。"
+        )
+
+        check_response = await send_async_with_retry(
+            self._genai_client,
+            model=bot_config.model,
+            contents=question,
+            config=types.GenerateContentConfig(system_instruction=check_system_prompt),
+        )
+
+        if check_response.text is not None and "是" in check_response.text:
+            return "答案正確！遊戲結束！"
+
         system_prompt = gen_system_prompt(self._surface, self._bottom)
 
         response = await send_async_with_retry(
@@ -64,12 +96,6 @@ class TurtleGame:
             config=types.GenerateContentConfig(system_instruction=system_prompt),
         )
         result = response.text
-
-        if result not in accepted_responses:
-            print(f"Invalid response from Gemini: {result}")
-            return "問題無效"
-
-        # ask another ai to check if the response is actually answer
 
         return result
 
