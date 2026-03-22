@@ -21,12 +21,9 @@ class DiscordBot:
         async def turtle_start(interaction: discord.Interaction):
             if self._session_manager.check_session(interaction.channel_id):
                 await interaction.response.send_message("目前已經有正在進行的遊戲了！")
-                surface = self._session_manager.get_session_surface(
-                    interaction.channel_id
-                )
+                surface = self._session_manager.get_session_surface(interaction.channel_id)
                 if surface:
                     await interaction.followup.send(f"目前的湯面是：{surface}")
-
                 return
 
             await interaction.response.defer()
@@ -47,6 +44,10 @@ class DiscordBot:
                 await interaction.response.send_message("目前有正在進行的遊戲！")
             else:
                 await interaction.response.send_message("目前沒有正在進行的遊戲！")
+
+        @self._tree.command(name="hello", description="Just say hello")
+        async def hello(interaction: discord.Interaction):
+            await interaction.response.send_message("Hello！")
 
         @self._client.event
         async def on_ready():

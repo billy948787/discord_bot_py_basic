@@ -63,6 +63,8 @@ class TurtleSessionManager:
         if response not in accepted_responses:
             return "問題無效"
 
+        return response
+
 
 class TurtleGame:
     def __init__(self, surface: str, bottom: str, genai_client: genai.Client) -> None:
@@ -84,7 +86,7 @@ class TurtleGame:
             config=types.GenerateContentConfig(system_instruction=check_system_prompt),
         )
 
-        if check_response.text is not None and "是" in check_response.text:
+        if check_response.text is not None and check_response.text.strip() == "是":
             return "答案正確！遊戲結束！"
 
         system_prompt = gen_system_prompt(self._surface, self._bottom)
